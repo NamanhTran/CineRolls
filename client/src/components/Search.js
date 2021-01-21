@@ -1,18 +1,24 @@
 import './Search.css';
 
 import React, { useEffect, useState } from 'react';
-import { TextField, Grid, Typography } from '@material-ui/core';
+import { TextField, CircularProgress } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import axios from 'axios';
 
-const Search = () => {
+import MovieResult from './MovieResult';
+
+const Search = ({ selection, setSelection }) => {
     const [text, setText] = useState('');
     const [dbText, setDbText] = useState(text);
     const [options, setOptions] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        setLoading(true);
+
         const timeoutId = setTimeout(() => {
             setDbText(text);
+            setLoading(false);
         }, 1000);
 
         return () => {
@@ -24,6 +30,7 @@ const Search = () => {
         const search = async () => {
             const { data } = await axios.post('http://localhost:3100/search', {"query": dbText});
            setOptions(data.data);
+           console.log(data.data);
         };
         
         if (dbText) {
@@ -36,37 +43,51 @@ const Search = () => {
 
     }, [dbText]);
 
-    const onChange = (event, input) => {
+    const onInputChange = (event, input) => {
         setText(input);
         console.log(input);
     }
 
+    const onSelection = (event, value) => {
+        setSelection(value);
+        console.log(value);
+    };
+
     const renderInput = (params) => {
-        return (<TextField {...params} id="standard-basic" label="Enter a Movie to Search" centered="true" fullWidth />);
+        return (
+        <TextField 
+            {...params} 
+            id="standard-basic" 
+            label="Enter a Movie to Search" 
+            centered="true" 
+            fullWidth 
+            InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                <React.Fragment>
+                    {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                    {params.InputProps.endAdornment}
+                </React.Fragment>
+                ),
+            }}
+        />);
     }
 
     const renderOption = (option) => {
-        return (
-            <Grid container spacing={2} alignItems="center" direction="row" className="image-result">
-                <Grid item xs={1}>
-                    <img src={`${option.poster ? "https://image.tmdb.org/t/p/w500" + option.poster : 'https://scontent-lax3-2.cdninstagram.com/v/t51.2885-19/s150x150/119710013_177484657221030_7662811337725111718_n.jpg?_nc_ht=scontent-lax3-2.cdninstagram.com&_nc_ohc=aiWg0C1jny0AX_UZYIC&tp=1&oh=116956072e4d080ea7c3664a0261e7bc&oe=60327946'}`} alt={option}/>
-                </Grid>
-                <Grid item xs>
-                    <Typography variant="h6">{option.title}</Typography>
-                </Grid>
-            </Grid>
-          );
+        return (<MovieResult poster={option.poster} title={option.title}/>);
     }
 
     return (
         <Autocomplete
             inputValue={text}
             options={options}
-            getOptionLabel={(option => option.title)}
+            value={selection}
+            getOptionLabel={(option => option.title ? option.title : null)}
             getOptionSelected={(option, value) => option.title === value.title}
             renderInput={(params) => renderInput(params)}
             renderOption={renderOption}
-            onInputChange={onChange}
+            onInputChange={onInputChange}
+            onChange={onSelection}
             freeSolo={true}
         />
     );
