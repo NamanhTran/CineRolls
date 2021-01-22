@@ -57,9 +57,10 @@ const Search = ({ selection, setSelection }) => {
         return (
         <TextField 
             {...params} 
-            id="standard-basic" 
+            id="outlined-basic" 
             label="Enter a Movie to Search" 
-            centered="true" 
+            centered="true"
+            variant="outlined" 
             fullWidth 
             InputProps={{
                 ...params.InputProps,
@@ -82,7 +83,7 @@ const Search = ({ selection, setSelection }) => {
             inputValue={text}
             options={options}
             value={selection}
-            getOptionLabel={(option => option.title ? option.title : null)}
+            getOptionLabel={(option => option.title ? option.title : "")}
             getOptionSelected={(option, value) => option.title === value.title}
             renderInput={(params) => renderInput(params)}
             renderOption={renderOption}
