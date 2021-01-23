@@ -1,7 +1,7 @@
 import './Search.css';
 
 import React, { useEffect, useState } from 'react';
-import { TextField, CircularProgress } from '@material-ui/core';
+import { TextField, CircularProgress, Paper, Box } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import axios from 'axios';
 
@@ -67,7 +67,6 @@ const Search = ({ selection, setSelection }) => {
                 endAdornment: (
                 <React.Fragment>
                     {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                    {params.InputProps.endAdornment}
                 </React.Fragment>
                 ),
             }}
@@ -79,18 +78,22 @@ const Search = ({ selection, setSelection }) => {
     }
 
     return (
-        <Autocomplete
-            inputValue={text}
-            options={options}
-            value={selection}
-            getOptionLabel={(option => option.title ? option.title : "")}
-            getOptionSelected={(option, value) => option.title === value.title}
-            renderInput={(params) => renderInput(params)}
-            renderOption={renderOption}
-            onInputChange={onInputChange}
-            onChange={onSelection}
-            freeSolo={true}
-        />
+        <Paper elevation={2}>
+            <Box>
+                <Autocomplete
+                    inputValue={text}
+                    options={options}
+                    value={selection}
+                    getOptionLabel={(option => option.title ? option.title : "")}
+                    getOptionSelected={(option, value) => option.title === value.title}
+                    renderInput={(params) => renderInput(params)}
+                    renderOption={renderOption}
+                    onInputChange={onInputChange}
+                    onChange={onSelection}
+                    freeSolo={true}
+                />
+            </Box>
+        </Paper>
     );
 };
 
