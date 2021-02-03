@@ -6,6 +6,7 @@ import { Autocomplete } from '@material-ui/lab';
 import axios from 'axios';
 
 import MovieResult from './MovieResult';
+import CustomTextField from './CustomTextField';
 
 const Search = ({ selection, setSelection }) => {
     const [text, setText] = useState('');
@@ -55,7 +56,7 @@ const Search = ({ selection, setSelection }) => {
 
     const renderInput = (params) => {
         return (
-        <TextField 
+        <CustomTextField 
             {...params} 
             id="outlined-basic" 
             label="Enter a Movie to Search" 

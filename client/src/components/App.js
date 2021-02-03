@@ -8,6 +8,7 @@ import BoxBackground from './BoxBackground';
 import Search from './Search';
 import MovieDetail from './MovieDetails';
 import Login from './Login';
+import Register from './Register';
 
 const App = () => {
     const [selection, setSelection] = useState('');
@@ -33,8 +34,14 @@ const App = () => {
                     </Route>
 
                     <Route path="/login">
-                        <BoxBackground>
-                            {loggedIn ? <Redirect to='/' /> : <Login /> }
+                        <BoxBackground maxWidth="xs">
+                            {loggedIn ? <Redirect to='/' /> : <Login setLoggedIn={setLoggedIn}/> }
+                        </BoxBackground>
+                    </Route>
+
+                    <Route path="/register">
+                        <BoxBackground maxWidth="xs">
+                            {loggedIn ? null : <Register /> }
                         </BoxBackground>
                     </Route>
 

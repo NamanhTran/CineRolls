@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 const NavBar = ({ loggedIn }) => {
 
     return (
-        <AppBar position="static" style={{ margin: 0 }}>
+        <AppBar position="static" style={{ margin: 0 }} color="default">
             <Toolbar>
                 <Typography variant="h6">
                     <Button component={Link} to="/" color="inherit" disableRipple={true}>
@@ -20,11 +20,15 @@ const NavBar = ({ loggedIn }) => {
                 </Typography>
 
                 <Typography variant="h6">
-                    {loggedIn ? <Button component={Link} to="logout" color="inherit">Logout</Button> : <Button component={Link} to="/login" color="inherit">Login</Button>}
+                    {loggedIn ? <Button component={Link} to="/logout" color="inherit" disableRipple={true}>Logout</Button> : <Button component={Link} to="/login" color="inherit" disableRipple={true}>Login</Button>}
+                </Typography>
+
+                <Typography variant="h6">
+                    {loggedIn ? null : <Button component={Link} to="/register" color="inherit" disableRipple={true}>Sign Up</Button>}
                 </Typography>
             </Toolbar>
         </AppBar>
     );
-}
+};
 
 export default NavBar;
