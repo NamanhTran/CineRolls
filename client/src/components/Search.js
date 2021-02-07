@@ -1,7 +1,7 @@
 import './Search.css';
 
 import React, { useEffect, useState } from 'react';
-import { TextField, CircularProgress, Paper, Box } from '@material-ui/core';
+import { CircularProgress, Paper, Box } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import axios from 'axios';
 
@@ -29,7 +29,7 @@ const Search = ({ selection, setSelection }) => {
 
     useEffect(() => {
         const search = async () => {
-            const { data } = await axios.post('http://localhost:3100/search', {"query": dbText});
+            const { data } = await axios.post('https://localhost:3100/search', {"query": dbText});
            setOptions(data.data);
            console.log(data.data);
         };
