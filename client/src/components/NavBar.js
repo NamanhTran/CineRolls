@@ -2,7 +2,7 @@ import React from 'react';
 import { AppBar, Toolbar, Typography, Button } from '@material-ui/core';
 import { Link } from 'react-router-dom';
 
-const NavBar = ({ loggedIn }) => {
+const NavBar = ({ loggedIn, username }) => {
 
     return (
         <AppBar position="static" style={{ margin: 0 }} color="default">
@@ -20,7 +20,7 @@ const NavBar = ({ loggedIn }) => {
                 </Typography>
 
                 <Typography variant="h6">
-                    {loggedIn ? <Button component={Link} to="/logout" color="inherit" disableRipple={true}>Logout</Button> : <Button component={Link} to="/login" color="inherit" disableRipple={true}>Login</Button>}
+                    {loggedIn ? <React.Fragment> <Button component={Link} to="/profile" color="inherit" disableRipple={true} style={{textTransform: 'none'}}>{username}</Button> <Button component={Link} to="/logout" color="inherit" disableRipple={true}>Logout</Button> </React.Fragment> : <Button component={Link} to="/login" color="inherit" disableRipple={true}>Login</Button>}
                 </Typography>
 
                 <Typography variant="h6">
