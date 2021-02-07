@@ -1,10 +1,11 @@
 const bcrypt = require('bcrypt');
 const config = require('config');
 const mongoose = require('mongoose');
+const { validationResult } = require('express-validator');
 
 const User = require('../models/userModel');
 
-const userExists = async (username=undefined, email=undefined) => {
+const usernameOrEmailExists = async (username=undefined, email=undefined) => {
     try {
         const query = await User.exists({
             $or: [{username: username}, {email: email}]
@@ -34,24 +35,6 @@ const createUser = (username, email, password) => {
     });
 }
 
-const validateSignUpQuery = (req, res) => {
-    const { username, password, email } = req.body;
-    
-    if (username === undefined) {
-        return res.status(400).send('400: No "username" parameter provided.');
-    }
-
-    if (email === undefined) {
-        return res.status(400).send('400: No "email" parameter provided.');
-    }
-
-    if (password === undefined) {
-        return res.status(400).send('400: No "password" parameter provided.');
-    }
-
-    return;
-};
-
 const checkLogin = async (username, password) => {
     try {
         const userInfo = await User.findOne({username: username});
@@ -67,35 +50,48 @@ const checkLogin = async (username, password) => {
     }
 };
 
+const createErrorJson = (param, msg) => {
+    return {
+        errors: [{'param': param, 'msg': msg}]
+    };
+}
+
 exports.postSignUp = async (req, res, next) => {
-    // Do some validation for username, email, and password
-    validateSignUpQuery(req, res);
-
-    // Get the username, email, and password from the req body
-    const { username, password, email } = req.body;
-
-    // Check if user exits in the database
-    if (await userExists(username, email)) {
-        return res.status(409).send('409: Username or email already exists');
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
     }
 
     else {
-        try {
-            // Hash Password
-            const hashedPassword = await bcrypt.hash(password, config.get('SALT_ROUNDS'));
-            
-            // Insert into DB
-            createUser(username, email, hashedPassword);
+        // Get the username, email, and password from the req body
+        const { username, password, email } = req.body;
 
-            // Set session isLoggedIn to be true
-            req.session.isLoggedIn = true;
-            req.session.save(() => {
-                return res.redirect(200, '/');
-            });
+        // Check if user exits in the database
+        if (await usernameOrEmailExists(username, email)) {
+            return res.status(409).json(createErrorJson('username', 'existed'));
+        }
 
-        } catch (error) {
-            if (error) {
-                console.log('error: ', error);  
+        else {
+            try {
+                // Hash Password
+                const hashedPassword = await bcrypt.hash(password, config.get('SALT_ROUNDS'));
+                
+                // Insert into DB
+                createUser(username, email, hashedPassword);
+
+                // Set session isLoggedIn to be true
+                req.session.isLoggedIn = true;
+                req.session.user.username = username;
+
+                await req.session.save();
+
+                return res.status(200).json(req.session.user);
+
+            } catch (error) {
+                if (error) {
+                    console.log('error: ', error);
+                    return res.status(500).json(createErrorJson(null, 'server error'));
+                }
             }
         }
     }
@@ -106,29 +102,39 @@ exports.postLogin = async (req, res, next) => {
     const { username, password } = req.body;
 
     // Check if the user exists
-    if (!await userExists(username)) {
-        return res.status(401).send('401: Unauthorized');
+    if (!await usernameOrEmailExists(username)) {
+        return res.status(401).json(createErrorJson(null, 'unauthorized'));
     }
 
     if (await checkLogin(username, password)) {
         // Set session isLoggedIn to be true
         req.session.isLoggedIn = true;
+        req.session.user = {username: username};
         await req.session.save();
         
-        return res.redirect(200, '/');
+        return res.status(200).json(req.session.user);
 
     } else {
-        return res.status(401).send('401: Unauthorized');
+        return res.status(401).json(createErrorJson(null, 'unauthorized'));
     }
 };
 
-exports.logout = (req, res, next) => {
-    if (res.session) {
-        res.session.destroy(() => {
-            res.redirect(200, '/');
-        });
+exports.logout = async (req, res, next) => {
+    if (req.session) {
+        await req.session.destroy();
+
+        return res.sendStatus(200);
 
     } else {
-        return res.status(400).send('400: Missing session header');
+        return req.status(400).json(createErrorJson('session', 'no session header provided'));
+    }
+};
+
+exports.getCheckSession = (req, res, next) => {
+    if (req.session.isLoggedIn) {
+        // returns true if a user already logged in.
+        res.status(200).json({isLoggedIn: true, user: req.session.user});
+    } else {
+        res.status(401).json({isLoggedIn: false});
     }
 };
