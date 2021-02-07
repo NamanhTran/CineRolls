@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { Button, Grid, Box } from '@material-ui/core';
+import { Button, Grid, Box, CircularProgress } from '@material-ui/core';
+import { useHistory } from 'react-router-dom';
+import axios from 'axios';
 
 import CustomTextField from './CustomTextField';
+axios.defaults.withCredentials = true;
 
-const Login = () => {
+const Login = ({ setLoggedIn, setUser }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState('');
+    const history = useHistory();
 
     const onUsernameChange = (event) => {
         console.log(event.target.value);
@@ -16,9 +21,20 @@ const Login = () => {
         setPassword(event.target.value)
     };
 
-    const onSubmit = (event) => {
-
+    const onSubmit = async (event) => {
         console.log("Submit button hit");
+        try {
+            setLoading(true);
+            const { data } = await axios.post('https://localhost:3100/login', {'username': username, 'password': password});
+            setLoading(false);
+            setUser(data);
+            setLoggedIn(true);
+            history.push("/");
+            
+        } catch (error) {
+            setLoading(false);
+            console.log('error', error);
+        }
     };
 
     return (
@@ -32,7 +48,7 @@ const Login = () => {
                         <CustomTextField required id="standard-required-password" type="password" color="secondary" label="Password" onChange={e => onPasswordChange(e)} />
                     </Grid>
                     <Grid item xs={12}>
-                        <Button variant="contained" color="default" onClick={e => onSubmit(e)}>Login</Button>
+                    <Button variant="contained" color="default" onClick={e => onSubmit(e)}>{loading ? <CircularProgress color="inherit" size={20} /> : "Login"}</Button>
                     </Grid>
                 </Grid>
             </Box>
