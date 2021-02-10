@@ -5,7 +5,7 @@ import axios from 'axios';
 
 import CustomTextField from './CustomTextField';
 
-const Register = ({ setLoggedIn }) => {
+const Register = ({ setLoggedIn, setUser }) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -31,10 +31,10 @@ const Register = ({ setLoggedIn }) => {
         console.log("Submit button hit");
         try {
             setLoading(true);
-            const response = await axios.post('https://localhost:3100/signup', {'username': username, 'email': email, 'password': password}, {withCredentials: true});
+            const { data } = await axios.post('https://localhost:3100/signup', {'username': username, 'email': email, 'password': password}, {withCredentials: true});
             setLoading(false);
-            console.log(response.headers);
             setLoggedIn(true);
+            setUser(data);
             history.push("/");
             
         } catch (error) {
