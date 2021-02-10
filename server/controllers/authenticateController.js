@@ -1,16 +1,18 @@
 const bcrypt = require('bcrypt');
 const config = require('config');
-const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 
 const User = require('../models/userModel');
 
+// Checks if the username or email already exists in the user document
 const usernameOrEmailExists = async (username=undefined, email=undefined) => {
     try {
+        // Checks if the user or email exists in the user document
         const query = await User.exists({
             $or: [{username: username}, {email: email}]
         });
 
+        // If there is a query result then return true. fFlse if it does not exist.
         if (query) {
             return true;
 
@@ -56,6 +58,7 @@ const createErrorJson = (param, msg) => {
     };
 }
 
+// Sign a user up and create a session
 exports.postSignUp = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -81,7 +84,7 @@ exports.postSignUp = async (req, res, next) => {
 
                 // Set session isLoggedIn to be true
                 req.session.isLoggedIn = true;
-                req.session.user.username = username;
+                req.session.user = {username: username};
 
                 await req.session.save();
 
@@ -97,7 +100,13 @@ exports.postSignUp = async (req, res, next) => {
     }
 };
 
+// Log the user in and create a session
 exports.postLogin = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    
     // Get the username, email, and password from the req body
     const { username, password } = req.body;
 
@@ -119,10 +128,10 @@ exports.postLogin = async (req, res, next) => {
     }
 };
 
+// Deletes the session passed
 exports.logout = async (req, res, next) => {
     if (req.session) {
         await req.session.destroy();
-
         return res.sendStatus(200);
 
     } else {
@@ -130,6 +139,7 @@ exports.logout = async (req, res, next) => {
     }
 };
 
+// Checks if session is valid
 exports.getCheckSession = (req, res, next) => {
     if (req.session.isLoggedIn) {
         // returns true if a user already logged in.
