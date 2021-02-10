@@ -27,6 +27,7 @@ const usernameOrEmailExists = async (username=undefined, email=undefined) => {
     }
 };
 
+// Creates an user in MongoDB
 const createUser = (username, email, password) => {
     const newUser = new User({username: username, email: email, password: password, lists: [], reviews:[]});
 
@@ -37,10 +38,13 @@ const createUser = (username, email, password) => {
     });
 }
 
+// Checks if the username and password is correct
 const checkLogin = async (username, password) => {
     try {
+        // Find the user in the database
         const userInfo = await User.findOne({username: username});
 
+        // Check if the password matches the user
         const isPasswordCorrect = await bcrypt.compare(password, userInfo.password);
 
         return isPasswordCorrect;
@@ -52,6 +56,7 @@ const checkLogin = async (username, password) => {
     }
 };
 
+// Creates error response json 
 const createErrorJson = (param, msg) => {
     return {
         errors: [{'param': param, 'msg': msg}]
@@ -85,7 +90,6 @@ exports.postSignUp = async (req, res, next) => {
                 // Set session isLoggedIn to be true
                 req.session.isLoggedIn = true;
                 req.session.user = {username: username};
-
                 await req.session.save();
 
                 return res.status(200).json(req.session.user);
