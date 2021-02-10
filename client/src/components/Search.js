@@ -29,7 +29,7 @@ const Search = ({ selection, setSelection }) => {
 
     useEffect(() => {
         const search = async () => {
-            const { data } = await axios.post('https://localhost:3100/search', {"query": dbText});
+            const { data } = await axios.post('https://localhost:3100/search/movies', {"query": dbText});
            setOptions(data.data);
            console.log(data.data);
         };
