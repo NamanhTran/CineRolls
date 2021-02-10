@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const session =  require('express-session');
 const mongoSession = require('connect-mongodb-session')(session);
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
 const config = require('config');
 
 // SSL Cert for HTTPS
@@ -25,9 +24,6 @@ const sessionStore = new mongoSession({
     uri: config.get('DB_URL'),
     collection: 'sessions'
 });
-
-// NEED TO CHECK IF NEEDED
-app.use(cookieParser());
 
 // Enables cors for all requests
 app.use(cors({ credentials: true, origin:['http://localhost:3000', 'https://localhost:3000'], exposedHeaders: ['set-cookie'] }));
