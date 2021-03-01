@@ -3,8 +3,13 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const itemSchema = new Schema({
-    _id: {
-        type: Schema.ObjectId,
+    listId: {
+        type: mongoose.ObjectId,
+        required: true
+    },
+
+    ownerId: {
+        type: mongoose.ObjectId,
         require: true
     },
 
@@ -15,7 +20,7 @@ const itemSchema = new Schema({
 
     posterUrl: {
         type: String,
-        require: true 
+        require: true
     },
 
     rating: {

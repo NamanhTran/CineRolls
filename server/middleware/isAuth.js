@@ -1,8 +1,10 @@
-module.export = (req, res, next) => {
+module.exports = (req, res, next) => {
     if (!req.session.isLoggedIn) {
         // returns true if a user already logged in.
-        res.status(401).redirect('/login');
+        return res.status(401).json({ error: "login required" });
     }
     
-    next();
+    else {
+        next();
+    }
 };

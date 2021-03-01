@@ -5,9 +5,9 @@ const item = require('./itemModel');
 const Schema = mongoose.Schema;
 
 const listSchema = new Schema({
-    _id: {
+    ownerId: {
         type: mongoose.ObjectId,
-        require: true
+        required: true
     },
 
     title: {
@@ -18,6 +18,11 @@ const listSchema = new Schema({
     items: {
         type: [mongoose.ObjectId],
         require: false
+    },
+
+    public: {
+        type: Boolean,
+        require: true
     }
 });
 

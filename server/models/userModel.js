@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 
-const list = require('./listModel');
-
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({

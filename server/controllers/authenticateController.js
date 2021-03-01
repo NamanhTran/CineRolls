@@ -27,6 +27,12 @@ const usernameOrEmailExists = async (username=undefined, email=undefined) => {
     }
 };
 
+const getUser = async (username) => {
+    const user = await User.findOne().where('username').equals(username);
+
+    return user;
+};
+
 // Creates an user in MongoDB
 const createUser = (username, email, password) => {
     const newUser = new User({username: username, email: email, password: password, lists: [], reviews:[]});
@@ -36,6 +42,8 @@ const createUser = (username, email, password) => {
             console.log('error: ', error);  
         }
     });
+
+    return newUser
 }
 
 // Checks if the username and password is correct
@@ -85,13 +93,12 @@ exports.postSignUp = async (req, res, next) => {
                 const hashedPassword = await bcrypt.hash(password, config.get('SALT_ROUNDS'));
                 
                 // Insert into DB
-                createUser(username, email, hashedPassword);
+                const newUser = await createUser(username, email, hashedPassword);
 
                 // Set session isLoggedIn to be true
                 req.session.isLoggedIn = true;
-                req.session.user = {username: username};
+                req.session.user = {username: newUser.username, id: newUser._id};
                 await req.session.save();
-
                 return res.status(200).json(req.session.user);
 
             } catch (error) {
@@ -120,11 +127,11 @@ exports.postLogin = async (req, res, next) => {
     }
 
     if (await checkLogin(username, password)) {
+        const user = await getUser(username);
         // Set session isLoggedIn to be true
         req.session.isLoggedIn = true;
-        req.session.user = {username: username};
+        req.session.user = {username: user.username, id: user._id};
         await req.session.save();
-        
         return res.status(200).json(req.session.user);
 
     } else {

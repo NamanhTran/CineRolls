@@ -47,9 +47,11 @@ app.use(bodyParser.json());
 // Declare and use the server's routes
 const authRoutes = require('./routes/authenticateRoutes');
 const searchRoutes = require('./routes/searchRoutes');
+const listRoutes = require('./routes/listRoutes');
 
 app.use(authRoutes);
 app.use(searchRoutes);
+app.use(listRoutes);
 
 // Make sure there is a database connection then listen on the specified port
 databaseConnection(() => {

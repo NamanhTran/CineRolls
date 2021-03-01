@@ -29,3 +29,72 @@
 OPTIONAL IMPLEMENTATIONS
 
 */
+
+const express = require('express');
+const { check } = require('express-validator');
+
+const listController = require('../controllers/listController');
+const isAuth = require('../middleware/isAuth');
+
+const router = express.Router();
+
+router.get(
+    '/search/public/lists',
+    listController.getPublicLists
+);
+
+router.get(
+    '/lists',
+    isAuth,
+    listController.getUserLists
+);
+
+router.post(
+    '/createList',
+    isAuth,
+    check('title').notEmpty(),
+    check('public').notEmpty(),
+    listController.createList
+);
+
+router.post(
+    '/deleteList',
+    isAuth,
+    check('listId').notEmpty(),
+    listController.deleteList
+);
+
+router.post(
+    '/createListItem',
+    isAuth,
+    check('listId').notEmpty(),
+    check('title').notEmpty(),
+    check('posterUrl').notEmpty(),
+    check('rating').notEmpty(),
+    check('review').notEmpty(),
+    check('emojiReview').notEmpty(),
+    listController.createListItem
+);
+
+router.post(
+    '/deleteListItem',
+    isAuth,
+    check('listId').notEmpty(),
+    check('itemId').notEmpty(),
+    listController.deleteListItem
+);
+
+router.post(
+    '/updateListItem',
+    isAuth,
+    check('listId').notEmpty(),
+    check('itemId').notEmpty(),
+    check('title').notEmpty(),
+    check('posterUrl').notEmpty(),
+    check('rating').notEmpty(),
+    check('review').notEmpty(),
+    check('emojiReview').notEmpty(),
+    listController.updateListItem
+);
+
+module.exports = router;
