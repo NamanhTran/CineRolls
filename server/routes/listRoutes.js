@@ -49,6 +49,13 @@ router.get(
     listController.getUserLists
 );
 
+router.get(
+    '/getList',
+    isAuth,
+    check('listId').notEmpty(),
+    listController.getList
+);
+
 router.post(
     '/createList',
     isAuth,
@@ -62,6 +69,13 @@ router.post(
     isAuth,
     check('listId').notEmpty(),
     listController.deleteList
+);
+
+router.get(
+    '/getListItems',
+    isAuth,
+    check('listId').notEmpty(),
+    listController.getListItems
 );
 
 router.post(
@@ -80,7 +94,7 @@ router.post(
     '/deleteListItem',
     isAuth,
     check('listId').notEmpty(),
-    check('itemId').notEmpty(),
+    check('title').notEmpty(),
     listController.deleteListItem
 );
 
