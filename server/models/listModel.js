@@ -15,10 +15,34 @@ const listSchema = new Schema({
         require: true
     },
 
-    items: {
-        type: [mongoose.ObjectId],
-        require: false
-    },
+    items: [
+        {
+            title: {
+                type: String,
+                require: true
+            },
+
+            posterUrl: {
+                type: String,
+                require: true
+            },
+
+            rating: {
+                type: Number,
+                require: false
+            },
+
+            review: {
+                type: String,
+                require: false
+            },
+
+            emojiReview: {
+                type: String,
+                require: false
+            }
+        }
+    ],
 
     public: {
         type: Boolean,
