@@ -3,12 +3,28 @@ const { validationResult } = require('express-validator');
 
 // Turns movie search results into JSON format
 const createMovieSearchResultJson = (resultArray) => {
+    if (resultArray.length === undefined) {
+        throw new Error("An array was not passed");
+    }
+
+    if (resultArray.length <= 0) {
+        throw new Error("The array is empty");
+    }
     // Create an empty JSON object
     const resultsJson = new Object();
     resultsJson.data = [];
 
     // Store all movie data into the JSON for each movie result
     for (var i = 0; i < resultArray.length; i++) {
+        if ( !resultArray[i].hasOwnProperty('original_title') 
+            || !resultArray[i].hasOwnProperty('overview') 
+            || !resultArray[i].hasOwnProperty('release_date') 
+            || !resultArray[i].hasOwnProperty('backdrop_path')
+            || !resultArray[i].hasOwnProperty('poster_path')
+            || !resultArray[i].hasOwnProperty('vote_average')
+            || !resultArray[i].hasOwnProperty('vote_count')) {
+                throw new Error("The result is missing nesscessary properties");
+            }
         resultsJson.data.push({
             'title': resultArray[i].original_title,
             'description': resultArray[i].overview,
@@ -50,3 +66,5 @@ exports.postSearchMovie = async (req, res, next) => {
         }
     }
 };
+
+exports.createMovieSearchResultJson = createMovieSearchResultJson;
