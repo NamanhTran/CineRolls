@@ -11,6 +11,10 @@ const TheMovieDBInstance = axios.create({
 
 // Searches movies in the TheMovieDB API given the query 
 exports.searchMovie = async (query) => {
+    if (query === '' || typeof query !== 'string') {
+        throw new Error('Invalid string provided');
+    }
+
     const response = await TheMovieDBInstance('/search/movie', {
         params: {
             language: 'en-US',
