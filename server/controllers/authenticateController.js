@@ -12,7 +12,7 @@ const usernameOrEmailExists = async (username=undefined, email=undefined) => {
             $or: [{username: username}, {email: email}]
         });
 
-        // If there is a query result then return true. fFlse if it does not exist.
+        // If there is a query result then return true. False if it does not exist.
         if (query) {
             return true;
 
@@ -21,16 +21,17 @@ const usernameOrEmailExists = async (username=undefined, email=undefined) => {
         }
 
     } catch (error) {
-        if (error) {
-            console.log('error: ', error);  
-        }
+        throw new Error(`A DB error occured when checking if username or email exists: ${error}`);
     }
 };
 
 const getUser = async (username) => {
-    const user = await User.findOne().where('username').equals(username);
-
-    return user;
+    try {
+        const user = await User.findOne().where('username').equals(username);
+        return user;
+    } catch (error) {
+        throw new Error(`A DB error occured when getting username: ${error}`);
+    }
 };
 
 // Creates an user in MongoDB
@@ -39,11 +40,11 @@ const createUser = (username, email, password) => {
 
     newUser.save((error) => {
         if (error) {
-            console.log('error: ', error);  
+            throw new Error(`A DB error occured when saving the newly created user: ${error}`); 
         }
     });
 
-    return newUser
+    return newUser;
 }
 
 // Checks if the username and password is correct
@@ -58,9 +59,7 @@ const checkLogin = async (username, password) => {
         return isPasswordCorrect;
 
     } catch (error) {
-        if (error) {
-            console.log(error)
-        }
+        throw new Error(`An error occured when trying to find a user the database and checking if the passwords match: ${error}`); 
     }
 };
 
@@ -77,37 +76,40 @@ exports.postSignUp = async (req, res, next) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
+    
+    // Get the username, email, and password from the req body
+    const { username, password, email } = req.body;
 
-    else {
-        // Get the username, email, and password from the req body
-        const { username, password, email } = req.body;
+    // let usernameOrEmailFound = await usernameOrEmailExists(username, email).catch((error) => {
+    //     console.log(error);
+    //     return res.status(500).json(createErrorJson(null, 'server error'));
+    // });
 
+    try {
         // Check if user exits in the database
-        if (await usernameOrEmailExists(username, email)) {
-            return res.status(409).json(createErrorJson('username', 'existed'));
-        }
+        if (await usernameOrEmailExists(username, email)) return res.status(409).json(createErrorJson('username', 'existed'));
 
-        else {
-            try {
-                // Hash Password
-                const hashedPassword = await bcrypt.hash(password, config.get('SALT_ROUNDS'));
-                
-                // Insert into DB
-                const newUser = await createUser(username, email, hashedPassword);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(createErrorJson(null, 'server error'));
+    }
 
-                // Set session isLoggedIn to be true
-                req.session.isLoggedIn = true;
-                req.session.user = {username: newUser.username, id: newUser._id};
-                await req.session.save();
-                return res.status(200).json(req.session.user);
+    try {
+        // Hash Password
+        const hashedPassword = await bcrypt.hash(password, config.get('SALT_ROUNDS'));
+        
+        // Insert into DB
+        const newUser = await createUser(username, email, hashedPassword);
 
-            } catch (error) {
-                if (error) {
-                    console.log('error: ', error);
-                    return res.status(500).json(createErrorJson(null, 'server error'));
-                }
-            }
-        }
+        // Set session isLoggedIn to be true
+        req.session.isLoggedIn = true;
+        req.session.user = {username: newUser.username, id: newUser._id};
+        await req.session.save();
+        return res.status(200).json(req.session.user);
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(createErrorJson(null, 'server error'));
     }
 };
 
@@ -121,30 +123,46 @@ exports.postLogin = async (req, res, next) => {
     // Get the username, email, and password from the req body
     const { username, password } = req.body;
 
-    // Check if the user exists
-    if (!await usernameOrEmailExists(username)) {
-        return res.status(401).json(createErrorJson(null, 'unauthorized'));
+    try {
+        // Check if user exits in the database
+        if (!await usernameOrEmailExists(username, email)) return res.status(401).json(createErrorJson(null, 'unauthorized'));
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(createErrorJson(null, 'server error'));
     }
 
-    if (await checkLogin(username, password)) {
-        const user = await getUser(username);
-        // Set session isLoggedIn to be true
-        req.session.isLoggedIn = true;
-        req.session.user = {username: user.username, id: user._id};
-        await req.session.save();
-        return res.status(200).json(req.session.user);
+    try {
+        if (await checkLogin(username, password)) {
+            const user = await getUser(username);
+            // Set session isLoggedIn to be true
+            req.session.isLoggedIn = true;
+            req.session.user = {username: user.username, id: user._id};
+            await req.session.save();
+            return res.status(200).json(req.session.user);
+    
+        } else {
+            return res.status(401).json(createErrorJson(null, 'unauthorized'));
+        }
 
-    } else {
-        return res.status(401).json(createErrorJson(null, 'unauthorized'));
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(createErrorJson(null, 'server error'));
     }
 };
 
 // Deletes the session passed
 exports.logout = async (req, res, next) => {
     if (req.session) {
-        await req.session.destroy();
-        return res.sendStatus(200);
+        try {
+            await req.session.destroy();
+            return res.sendStatus(200);
 
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json(createErrorJson(null, 'server error'));
+        }
+        
     } else {
         return req.status(400).json(createErrorJson('session', 'no session header provided'));
     }
@@ -159,3 +177,9 @@ exports.getCheckSession = (req, res, next) => {
         res.status(401).json({isLoggedIn: false});
     }
 };
+
+exports.usernameOrEmailExists = usernameOrEmailExists;
+exports.getUser = getUser;
+exports.createUser = createUser;
+exports.checkLogin = checkLogin;
+exports.createErrorJson = createErrorJson;
